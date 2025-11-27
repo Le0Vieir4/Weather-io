@@ -11,6 +11,20 @@ yarn-error.log*
 pnpm-debug.log*
 bun.lockb
 
+# Build / Output
+dist/
+build/
+.next/
+out/
+
+# Cache
+.cache/
+.temp/
+.tmp/
+.parcel-cache/
+.eslintcache
+stylelintcache
+
 # Python
 __pycache__/
 *.pyc
@@ -28,7 +42,6 @@ vendor/
 
 # Arquivos de ambiente
 .env
-.env.*
 *.env
 
 # Logs
