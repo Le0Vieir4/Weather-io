@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  api:
+    build: ../apps/api-nestjs
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+
+  producer:
+    build: ../apps/producer-python
+    env_file:
+      - .env
+
+  consumer:
+    build: ../apps/consumer-go
+    env_file:
+      - .env
+
+  rabbit:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
