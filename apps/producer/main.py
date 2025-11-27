@@ -51,7 +51,7 @@ send()
 print("Aguardando 1 hr para a próxima consulta...")
 
 # Worker que faz a consulta na API e envia para a fila periodicamente
-schedule.every(20).seconds.do(send)
+schedule.every(1).hours.do(send)
 
 while True:
     schedule.run_pending()

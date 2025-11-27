@@ -1,4 +1,7 @@
 .env
+.env.*
+*.env
 .cache.sqlite
 .venv
+
 __pycache__
