@@ -1,0 +1,43 @@
+# --- ESTÁGIO 1: BASE ---
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+# --- ESTÁGIO 2: BUILDER ---
+FROM base AS builder
+WORKDIR /app
+
+# Copia arquivos de configuração do workspace
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copia o código fonte do frontend
+COPY apps/frontend ./apps/frontend
+
+# Instala todas as dependências (frozen-lockfile garante versões exatas)
+RUN pnpm install --frozen-lockfile
+
+# Build da aplicação (Vite cria build otimizado para produção)
+RUN pnpm run --filter=./apps/frontend build
+
+# --- ESTÁGIO 3: NGINX (SERVIDOR WEB) ---
+FROM nginx:alpine AS runner
+
+# Remove configuração padrão do nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copia os arquivos buildados do Vite
+COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
+
+# Copia configuração customizada do nginx
+COPY infra/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expõe a porta 5673
+EXPOSE 5673
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5673/ || exit 1
+
+# Inicia o nginx
+CMD ["nginx", "-g", "daemon off;"]

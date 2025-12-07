@@ -1,25 +1,66 @@
-version: '3.9'
-
 services:
   api:
-    build: ../apps/api-nestjs
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.api
+    container_name: api
+    ports:
+      - "3000:3000"
     env_file:
       - .env
     environment:
-      - NODE_ENV=${NODE_ENV}
-
-  producer:
-    build: ../apps/producer-python
-    env_file:
-      - .env
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@weather-io.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Admin@123456}
+    volumes:
+      - weather-exports:/app/exports
 
   consumer:
-    build: ../apps/consumer-go
+    build:
+      context: ../apps/consumer
+      dockerfile: Dockerfile
+    container_name: consumer
     env_file:
       - .env
+    depends_on:
+      - rabbitmq
+      - api
 
-  rabbit:
-    image: rabbitmq:3-management
+  producer:
+    build:
+      context: ../apps/producer
+      dockerfile: Dockerfile
+    container_name: producer
+    env_file:
+      - .env
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
+      - TZ=America/Sao_Paulo
+    volumes:
+      - weather-exports:/app/exports
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # Port AMQP
+      - "15672:15672"   # Port Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.frontend
+    container_name: frontend
+    ports:
+      - "5673:5673"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  weather-exports:

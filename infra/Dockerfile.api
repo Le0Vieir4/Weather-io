@@ -1,0 +1,50 @@
+# --- ESTÁGIO 1: BASE ---
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+# --- ESTÁGIO 2: BUILDER ---
+FROM base AS builder
+WORKDIR /app
+
+# Copia arquivos de configuração
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copia o código fonte da API
+COPY apps/api ./apps/api
+
+# Instala todas as dependências (frozen-lockfile garante versões exatas)
+RUN pnpm install --frozen-lockfile
+
+# Build da aplicação
+RUN pnpm run --filter=./apps/api build
+
+# --- CORREÇÃO AQUI ---
+# Adicionada a flag "--legacy" para evitar o erro ERR_PNPM_DEPLOY_NONINJECTED_WORKSPACE
+RUN pnpm --filter=./apps/api --prod deploy /prod/api --legacy
+
+# --- ESTÁGIO 3: FINAL (RUNNER) ---
+FROM base AS runner
+WORKDIR /app
+
+# Copia as dependências prontas do estágio de deploy
+COPY --from=builder /prod/api/node_modules ./node_modules
+COPY --from=builder /prod/api/package.json ./package.json
+
+# Copia o código compilado
+# IMPORTANTE: Se o build do NestJS gera dist/src/main.js, ajuste aqui ou no CMD
+COPY --from=builder /app/apps/api/dist ./dist
+
+# Copia o script de inicialização
+COPY apps/api/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+USER node
+
+# Usa o entrypoint script
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+# Inicia a aplicação
+# Ajuste para "dist/src/main.js" se der erro de "Cannot find module"
+CMD ["node", "dist/main.js"]
