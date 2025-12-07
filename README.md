@@ -120,7 +120,7 @@ Weather.io é uma aplicação completa para coleta, processamento e visualizaç�
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/weather-io.git
+git clone https://github.com/le0Vieir4/weather-io.git
 cd weather-io
 ```
 
@@ -187,7 +187,7 @@ docker logs consumer -f
 
 ### Acessar a Aplicação
 
-- **Frontend**: http://localhost
+- **Frontend**: http://localhost:5673
 - **API**: http://localhost:3000
 - **RabbitMQ Management**: http://localhost:15672
   - Usuário: `admin`
@@ -463,7 +463,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 👥 Autores
 
-- **Seu Nome** - *Trabalho Inicial* - [seu-usuario](https://github.com/seu-usuario)
+- **Leonardo Vieira Moreira** - [le0Vier4](https://github.com/le0Vier4)
 
 ## 🙏 Agradecimentos
 
