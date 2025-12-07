@@ -6,6 +6,7 @@ import { parseDate, DAY_NAMES } from "@/utils/dateHelpers"
 import { MapPin, type LucideIcon } from "lucide-react"
 import { motion } from "motion/react"
 import type { WeatherData } from "@/types/schemas/weather-schemas"
+import botIcon from "@/assets/icons/bot-icon.svg?url"
 
 type DayItem = {
   name: string,
@@ -105,7 +106,7 @@ export function Dashboard() {
                   className="absolute right-5 bg-green-500 border rounded-lg p-4  w-[350px]">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex gap-1 "> 
-                      <img src="src/assets/icons/bot-icon.svg" alt="Bot" className="w-7 h-7 relative -top-1.5" /></div>
+                      <img src={botIcon} alt="Bot" className="w-7 h-7 relative -top-1.5" /></div>
                       <h1 className="text-lg font-semibold text-white">Insights de IA</h1>
                   </div>
                   <div className="px-4">
