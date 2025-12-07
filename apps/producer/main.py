@@ -1,58 +1,79 @@
-from dotenv import load_dotenv
-import json
-import time
-import pika
+# Weather Producer - Main Entry Point
 import schedule
-import os
-from data import data
+import time
+import logging
 
-load_dotenv()  # Carrega as variáveis do arquivo .env
+from config.logging_config import setup_logging
+from config.settings import SCHEDULE
+from src.services.weather_service import WeatherService
+from src.services.export_service import ExportService
+from src.messaging.publisher import RabbitMQPublisher
 
-# Salva variáveis na memória
-host = os.getenv('RABBIT_HOST')
-port = int(os.getenv('RABBIT_PORT'))
-user = os.getenv('RABBIT_USER')
-password = os.getenv('RABBIT_PASS')
+# Setup logging
+logger = setup_logging()
 
-cred = pika.PlainCredentials(user, password)
+# Initialize services
+weather_service = WeatherService()
+export_service = ExportService()
+publisher = RabbitMQPublisher()
 
-def send():
-    # Loop para tentar conectar ao RabbitMQ.
-    # Evita erro caso o serviço ainda não tenha iniciado.
-    for _ in range(10):
-        try:
-            conn = pika.BlockingConnection(
-                pika.ConnectionParameters(host=host, port=port, credentials=cred)
-            )
-            print("✔️ Conectado ao RabbitMQ")
-            break
-        except Exception as e:
-            print(f"❌ Tentativa {_+1}/10 - erro: {e}")
-            time.sleep(2)
+def send_weather_data():
+    # Send weather data without AI insight
+    try:
+        logger.info("Sending weather data")
+        
+        # Get weather data
+        weather_json = weather_service.get_weather_data(include_ai_insight=False)
+        
+        # Publish to RabbitMQ
+        publisher.publish(weather_json)
+        
+        # Generate exports
+        export_service.export_csv(weather_json)
+        export_service.export_excel(weather_json)
+        
+    except Exception as e:
+        logger.error(f"Error sending weather data: {e}")
 
-    ch = conn.channel()  # Abre um canal AMQP
+def send_weather_data_with_insight():
+    # Send weather data with AI insight
+    try:
+        logger.info("Sending weather data with AI insight")
+        
+        # Get weather data with AI insight
+        weather_json = weather_service.get_weather_data(include_ai_insight=True)
+        
+        # Publish to RabbitMQ
+        publisher.publish(weather_json)
+        
+        # Generate exports
+        export_service.export_csv(weather_json)
+        export_service.export_excel(weather_json)
+        
+    except Exception as e:
+        logger.error(f"Error sending weather data with insight: {e}")
+
+def main():
+    # Main application loop
+    logger.info("=== Weather Producer Started ===")
+    logger.info(f"Schedule: Data every {SCHEDULE['data_interval_minutes']} min, Insights every {SCHEDULE['insight_interval_hours']} hour")
     
-    # Declara a fila que receberá as mensagens do clima
-    ch.queue_declare(queue='weather', durable=True, exclusive=False, auto_delete=False)
+    # Initial run with insight
+    send_weather_data_with_insight()
     
-    # Recupera o JSON gerado no módulo data.py
-    payload = data()
+    # Schedule tasks
+    schedule.every(SCHEDULE["data_interval_minutes"]).minutes.do(send_weather_data)
+    schedule.every(SCHEDULE["insight_interval_hours"]).hours.do(send_weather_data_with_insight)
     
-    # Converte o JSON para bytes antes de enviar
-    payload = payload.encode("utf-8")
-    
-    # Publica a mensagem na fila
-    ch.basic_publish(exchange='', routing_key='weather', body=payload)
-    print("✔️ Mensagem enviada com sucesso")
+    # Run scheduler
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-    conn.close()  # Fecha a conexão
-
-send()
-print("Aguardando 1 hr para a próxima consulta...")
-
-# Worker que faz a consulta na API e envia para a fila periodicamente
-schedule.every(1).hours.do(send)
-
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("=== Weather Producer Stopped ===")
+    except Exception as e:
+        logger.critical(f"Critical error: {e}", exc_info=True)

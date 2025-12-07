@@ -4,3 +4,8 @@ retry-requests
 python-dotenv
 pika
 schedule
+numpy
+pandas
+openpyxl
+xlsxwriter
+openai
