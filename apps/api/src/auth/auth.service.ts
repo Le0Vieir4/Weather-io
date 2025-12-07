@@ -77,6 +77,7 @@ export class AuthService {
       isOAuth: true, // Flag to identify as OAuth user
     };
 
-    return this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 }

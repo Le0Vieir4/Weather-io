@@ -61,7 +61,7 @@ type WeatherTransformed struct {
 
 func main() {
 
-	postUrl := os.Getenv("NEST_URL")
+	postUrl := os.Getenv("API_URL")
 	rabbitUrl := os.Getenv("RABBIT_URL")
 
 	// Retry connection to RabbitMQ

@@ -1,7 +1,8 @@
 import type { WeatherData, WeatherLog } from '@/types/schemas/weather-schemas';
 import { useState, useCallback } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use relative URLs to go through Nginx proxy
+const API_URL = '';
 
 
 

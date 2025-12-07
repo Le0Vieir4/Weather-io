@@ -18,7 +18,7 @@ async function bootstrap() {
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'your-secret-key',
+      secret: process.env.SECRET || 'your-secret-key',
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -26,7 +26,7 @@ async function bootstrap() {
       },
     }),
   );
-
+  
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -48,9 +48,10 @@ async function bootstrap() {
   );
   app.setGlobalPrefix('api');
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5673',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   });
+  
   await app.listen(process.env.PORT ?? 3000);
 }
 

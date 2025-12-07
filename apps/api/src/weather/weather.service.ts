@@ -42,6 +42,31 @@ export class WeatherService {
     return this.latestWeather;
   }
 
+  async getLatestWeatherFromDb(): Promise<CreateWeatherDto | null> {
+    const logs = await this.weatherLogRepository.find({
+      order: { createdAt: 'DESC' },
+      take: 1,
+    });
+    
+    if (logs.length === 0) {
+      console.log('❌ No logs found');
+      return null;
+    }
+
+    const log = logs[0];
+    
+    // Convert WeatherLog entity to CreateWeatherDto
+    const result = {
+      time: log.time,
+      city: log.city,
+      current: log.current,
+      daily: log.daily,
+      aiInsight: log.aiInsight,
+    };
+    
+    return result;
+  }
+
   async getAllLogs(limit: number = 100): Promise<WeatherLog[]> {
     return this.weatherLogRepository.find({
       order: { createdAt: 'DESC' },

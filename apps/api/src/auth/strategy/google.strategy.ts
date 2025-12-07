@@ -13,18 +13,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  validate(profile: Profile) {
-    const { emails, username, photos, displayName } = profile;
+  validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+  ) {
+    const { emails, photos, displayName, name } = profile;
 
-    // Extract name from displayName or use username as fallback
-    const nameParts = displayName?.split(' ') || [username || ''];
-    const givenName = nameParts[0] || username || '';
-    const familyName = nameParts.slice(1).join(' ') || '';
+    // Use the name object from profile if available
+    const givenName = name?.givenName || displayName?.split(' ')[0] || '';
+    const familyName = name?.familyName || displayName?.split(' ').slice(1).join(' ') || '';
 
     // Construct the user object
     const user = {
       email: emails?.[0]?.value || '',
-      username: username || displayName || '',
+      username: displayName || emails?.[0]?.value?.split('@')[0] || '',
       picture: photos?.[0]?.value || '',
       provider: 'google',
       name: {

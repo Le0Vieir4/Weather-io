@@ -17,13 +17,32 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 PAST_DAYS = 30
 
 # RabbitMQ settings
-RABBITMQ = {
-    "host": os.getenv('RABBIT_HOST'),
-    "port": os.getenv('RABBIT_PORT'),
-    "user": os.getenv('RABBIT_USER'),
-    "password": os.getenv('RABBIT_PASS'),
-    "queue": "weather"
-}
+RABBIT_URL = os.getenv('RABBIT_URL', 'amqp://admin:admin@rabbitmq:5672')
+
+# Parse URL ou usar variáveis individuais
+if RABBIT_URL and RABBIT_URL.startswith('amqp://'):
+    # Parsear URL completa: amqp://user:pass@host:port
+    from urllib.parse import urlparse
+    parsed = urlparse(RABBIT_URL)
+    
+    RABBITMQ = {
+        "host": parsed.hostname or "rabbitmq",
+        "port": parsed.port or 5672,
+        "user": parsed.username or "admin",
+        "password": parsed.password or "admin",
+        "queue": "weather",
+        "url": RABBIT_URL
+    }
+else:
+    # Fallback para variáveis individuais (retrocompatibilidade)
+    RABBITMQ = {
+        "host": os.getenv('RABBIT_HOST', 'rabbitmq'),
+        "port": int(os.getenv('RABBIT_PORT', 5672)),
+        "user": os.getenv('RABBIT_USER', 'admin'),
+        "password": os.getenv('RABBIT_PASS', 'admin'),
+        "queue": "weather",
+        "url": None
+    }
 
 # OpenAI settings
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

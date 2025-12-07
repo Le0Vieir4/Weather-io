@@ -28,15 +28,27 @@ export class WeatherController {
   }
 
   @Get()
-  getLatestWeather(): CreateWeatherDto | null {
-    const data = this.weatherService.getLatestWeather();
+  async getLatestWeather(): Promise<CreateWeatherDto | null> {
+    // Try to get from memory first
+    let data = this.weatherService.getLatestWeather();
+    
+    // If not in memory, fetch from database
+    if (!data) {
+      data = await this.weatherService.getLatestWeatherFromDb();
+    }
+    
     return data;
   }
 
   @Get('insight')
-  getAIInsight(): { aiInsight: string | null } {
+  async getAIInsight(): Promise<{ aiInsight: string | null }> {
     try {
-      const latestWeather = this.weatherService.getLatestWeather();
+      let latestWeather = this.weatherService.getLatestWeather();
+      
+      // If not in memory, fetch from database
+      if (!latestWeather) {
+        latestWeather = await this.weatherService.getLatestWeatherFromDb();
+      }
 
       if (!latestWeather) {
         throw new HttpException(

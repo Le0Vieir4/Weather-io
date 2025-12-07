@@ -13,19 +13,25 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     });
   }
 
-  validate(profile: Profile) {
-    const { emails, username, photos, displayName } = profile;
+  validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: Profile,
+  ) {
+    const { emails, username, photos, displayName, name } = profile;
 
-    // Extract name from displayName or use username as fallback
-    const nameParts = displayName?.split(' ') || [username || ''];
-    const givenName = nameParts[0] || username || '';
-    const familyName = nameParts.slice(1).join(' ') || '';
+    // GitHub provides avatar_url in _json (access via type assertion)
+    const avatarUrl = (profile as any)._json?.avatar_url || photos?.[0]?.value || '';
+
+    // Use the name object from profile if available, or parse displayName
+    const givenName = name?.givenName || displayName?.split(' ')[0] || username || '';
+    const familyName = name?.familyName || displayName?.split(' ').slice(1).join(' ') || '';
 
     // Construct the user object
     const user = {
       email: emails?.[0]?.value || '',
       username: username || displayName || '',
-      picture: photos?.[0]?.value || '',
+      picture: avatarUrl,
       provider: 'github',
       name: {
         givenName,

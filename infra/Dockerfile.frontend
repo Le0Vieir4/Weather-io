@@ -32,12 +32,12 @@ COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
 # Copia configuração customizada do nginx
 COPY infra/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expõe a porta 5673
-EXPOSE 5673
+# Expõe a porta 5173
+EXPOSE 5173
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5673/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5173/ || exit 1
 
 # Inicia o nginx
 CMD ["nginx", "-g", "daemon off;"]

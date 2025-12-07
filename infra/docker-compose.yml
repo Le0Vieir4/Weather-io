@@ -8,12 +8,19 @@ services:
       - "3000:3000"
     env_file:
       - .env
-    environment:
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@weather-io.com}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Admin@123456}
     volumes:
       - weather-exports:/app/exports
+      
+  frontend:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
 
   consumer:
     build:
@@ -51,16 +58,6 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     restart: unless-stopped
 
-  frontend:
-    build:
-      context: ..
-      dockerfile: infra/Dockerfile.frontend
-    container_name: frontend
-    ports:
-      - "5673:5673"
-    depends_on:
-      - api
-    restart: unless-stopped
 
 volumes:
   weather-exports:

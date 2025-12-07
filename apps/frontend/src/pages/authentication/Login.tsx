@@ -21,13 +21,11 @@ export function Login() {
   const { toasts } = useToast()
 
   const handleGoogleLogin = () => {
-    const API_URL = import.meta.env.VITE_API_URL;
-    window.location.href = `${API_URL}/api/auth/google`
+    window.location.href = `/api/auth/google`
   }
 
   const handleGithubLogin = () => {
-    const API_URL = import.meta.env.VITE_API_URL;
-    window.location.href = `${API_URL}/api/auth/github`
+    window.location.href = `/api/auth/github`
   }
 
   const handleSubmitLogin = async (e: React.FormEvent<HTMLFormElement>) => {
